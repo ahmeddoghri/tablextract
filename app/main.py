@@ -14,7 +14,6 @@ from . import security
 from .config import settings
 from .extractor import TextTableExtractor
 from .query import answer_query
-from .schema import Table
 from .security import require_api_key
 
 app = FastAPI(title="tablextract", version="0.1.0")
