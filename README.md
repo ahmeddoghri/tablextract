@@ -1,7 +1,7 @@
 # tablextract
 
 ![CI](https://github.com/ahmeddoghri/tablextract/actions/workflows/ci.yml/badge.svg)
-![tests](https://img.shields.io/badge/tests-12%20passing-brightgreen)
+![tests](https://img.shields.io/badge/tests-17%20passing-brightgreen)
 ![python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![license](https://img.shields.io/badge/license-MIT-black)
 
@@ -99,11 +99,13 @@ outputs). For end-to-end PDF binaries:
 pip install -r requirements-pdf.txt   # adds pdfplumber
 ```
 ```bash
-curl -X POST "localhost:8000/v1/extract/pdf?source=my-doc" \
-  --data-urlencode "pdf_base64=$(base64 -i document.pdf)"
+curl -X POST localhost:8000/v1/extract/pdf \
+  -H "Content-Type: application/json" \
+  -d "{\"pdf_base64\": \"$(base64 -i document.pdf)\", \"source\": \"my-doc\"}"
 ```
-Returns `501` with a clear message if `pdfplumber` isn't installed, instead
-of a bare 500.
+The base64 payload goes in the JSON body (not the query string, which has
+length limits). Returns `400` for malformed base64, and `501` with a clear
+message if `pdfplumber` isn't installed — never a bare 500.
 
 ## How it decides what's a table
 
@@ -119,10 +121,25 @@ for each block:
   first consistent row -> headers, the rest -> data rows
 ```
 
+## Production configuration
+
+All settings have safe defaults; override via environment variables.
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `API_KEY` | *(empty)* | When set, write endpoints require a matching `X-API-Key` header. Empty leaves the service open. |
+| `MAX_TEXT_CHARS` | `1000000` | Rejects (422) documents larger than this. |
+| `MAX_PDF_BYTES` | `20MiB` | Caps decoded PDF size on `/v1/extract/pdf`. |
+
+The service exposes `GET /healthz` (liveness) and `GET /readyz` (readiness).
+Every response carries an `X-Request-ID` header and requests are logged with
+method, path, status, and latency. Unhandled errors return a structured `500`
+without leaking stack traces.
+
 ## Tests
 
 ```bash
-pip install -r requirements-dev.txt && pytest -q      # 12 passing
+pip install -r requirements-dev.txt && pytest -q      # 17 passing
 ```
 
 ## License
