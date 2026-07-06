@@ -1,6 +1,6 @@
+from app.eval import DOCUMENT, GROUND_TRUTH, run
 from app.extractor import NaiveExtractor, TextTableExtractor
 from app.query import answer_query
-from app.eval import DOCUMENT, GROUND_TRUTH, run
 
 
 def test_smart_extractor_finds_both_tables():

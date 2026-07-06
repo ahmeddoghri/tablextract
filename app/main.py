@@ -89,7 +89,9 @@ def query(req: QueryRequest) -> QueryResponse:
 def extract_pdf(req: PdfExtractRequest) -> ExtractResponse:
     """Real-PDF path: POST base64-encoded PDF bytes in the request body.
     Requires the optional `pdfplumber` dependency (pip install tablextract[pdf])."""
-    from .extractor import PdfplumberExtractor  # the class itself has no hard dependency
+    from .extractor import (
+        PdfplumberExtractor,  # the class itself has no hard dependency
+    )
 
     try:
         pdf_bytes = base64.b64decode(req.pdf_base64, validate=True)
