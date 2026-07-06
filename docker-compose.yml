@@ -1,0 +1,5 @@
+services:
+  tablextract:
+    build: .
+    ports:
+      - "8003:8000"
