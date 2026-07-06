@@ -5,6 +5,10 @@
 ![python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![license](https://img.shields.io/badge/license-MIT-black)
 
+> **Pull data out of messy prose-plus-table documents and answer questions
+> with a citation to the exact row and column.** Zero API keys to try it:
+> `python -m app.eval`.
+
 A structured-table extraction service for documents that mix narrative text
 and data tables with no explicit markup between them — which is every
 regulatory document I've ever had to parse. Finds the table blocks, skips the
