@@ -5,22 +5,24 @@
 ![python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![license](https://img.shields.io/badge/license-MIT-black)
 
-> **Pull data out of messy prose-plus-table documents and answer questions
-> with a citation to the exact row and column.** Zero API keys to try it:
-> `python -m app.eval`.
+> **Pull data out of messy prose-plus-table documents and answer
+> questions with a citation to the exact row and column.** Zero API keys
+> to try it: `python -m app.eval`.
 
-A structured-table extraction service for documents that mix narrative text
-and data tables with no explicit markup between them — which is every
-regulatory document I've ever had to parse. Finds the table blocks, skips the
-prose, and answers questions against the extracted data with a citation back
-to the exact row and column it came from.
+PDFs are where structured data goes to die. Somewhere between the
+spreadsheet someone built it in and the document someone pasted it into,
+every table gets buried inside three paragraphs of narrative text with
+zero markup telling you where the prose stops and the numbers start.
+tablextract finds the table blocks, skips the prose, and answers
+questions against the extracted data with a citation back to the exact
+row and column it came from.
 
-I spent real time on this exact problem building a table-extraction pipeline
-for FDA regulatory submissions — the failure mode that actually costs you is
-never "can't read a PDF," it's a naive parser choking on the paragraph
-between two tables and misaligning every row downstream of it. This is that
-lesson, rebuilt as an open, runnable service instead of proprietary
-pipeline code.
+I spent real time on this exact problem building a table-extraction
+pipeline for FDA regulatory submissions. The failure mode that actually
+costs you is never "can't read a PDF." It's a naive parser choking on the
+paragraph between two tables and misaligning every row downstream of it,
+silently, so nobody notices until an audit. This is that lesson, rebuilt
+as an open, runnable service instead of proprietary pipeline code.
 
 ## The problem, concretely
 
@@ -36,9 +38,10 @@ Cohort B    9       3       0
 ```
 
 A naive extractor that treats every line the same way sees the prose
-sentences as "rows" too — and once the header is wrong, every downstream cell
-lookup is wrong with it. `tablextract` finds contiguous, column-consistent
-blocks and treats everything else as prose to skip.
+sentences as "rows" too, and once the header assumption is wrong, every
+downstream cell lookup is wrong right along with it. `tablextract` finds
+contiguous, column-consistent blocks and treats everything else as prose
+to skip.
 
 ## The result, on a labeled synthetic document
 
@@ -53,10 +56,11 @@ naive                    1            0/8           0%
 tablextract              2            8/8         100%
 ```
 
-Zero isn't a typo: the naive extractor merges the prose paragraph into the
-table it's parsing, which shifts its header assumption and corrupts every
-single ground-truth cell lookup after that point. This is the actual, common
-failure mode in real documents, not a cherry-picked edge case.
+Zero isn't a typo. The naive extractor merges the prose paragraph into
+the table it's parsing, which shifts its header assumption and corrupts
+every single ground-truth cell lookup after that point. This is the
+actual, common failure mode in real documents, not a cherry-picked edge
+case built to make the demo look good.
 
 ## Install & run
 
@@ -95,9 +99,9 @@ curl -X POST localhost:8000/v1/query \
 
 ## Real PDFs
 
-The default path works on already-extracted text (which is exactly what
-`pdfplumber` gives you from a real PDF's text layer, or what an OCR engine
-outputs). For end-to-end PDF binaries:
+The default path works on already-extracted text, which is exactly what
+`pdfplumber` gives you from a real PDF's text layer, or what an OCR
+engine outputs. For end-to-end PDF binaries:
 
 ```bash
 pip install -r requirements-pdf.txt   # adds pdfplumber
@@ -107,9 +111,10 @@ curl -X POST localhost:8000/v1/extract/pdf \
   -H "Content-Type: application/json" \
   -d "{\"pdf_base64\": \"$(base64 -i document.pdf)\", \"source\": \"my-doc\"}"
 ```
-The base64 payload goes in the JSON body (not the query string, which has
-length limits). Returns `400` for malformed base64, and `501` with a clear
-message if `pdfplumber` isn't installed — never a bare 500.
+The base64 payload goes in the JSON body, not the query string, which
+has length limits and will silently truncate a real PDF. Returns `400`
+for malformed base64 and `501` with a clear message if `pdfplumber`
+isn't installed. Never a bare 500 that leaves you guessing.
 
 ## How it decides what's a table
 
@@ -135,10 +140,10 @@ All settings have safe defaults; override via environment variables.
 | `MAX_TEXT_CHARS` | `1000000` | Rejects (422) documents larger than this. |
 | `MAX_PDF_BYTES` | `20MiB` | Caps decoded PDF size on `/v1/extract/pdf`. |
 
-The service exposes `GET /healthz` (liveness) and `GET /readyz` (readiness).
-Every response carries an `X-Request-ID` header and requests are logged with
-method, path, status, and latency. Unhandled errors return a structured `500`
-without leaking stack traces.
+The service exposes `GET /healthz` (liveness) and `GET /readyz`
+(readiness). Every response carries an `X-Request-ID` header, requests
+are logged with method, path, status, and latency, and unhandled errors
+return a structured `500` without leaking stack traces.
 
 ## Tests
 
@@ -148,7 +153,7 @@ pip install -r requirements-dev.txt && pytest -q      # 17 passing
 
 ## More in this series
 
-Nine small, dependency-light, benchmarked tools for LLM/ML infrastructure — each reproduces its headline number locally with no API keys:
+Nine small, dependency-light, benchmarked tools for LLM/ML infrastructure. Each one reproduces its headline number locally with no API keys:
 
 [agentmem](https://github.com/ahmeddoghri/agentmem) · [rubricagent](https://github.com/ahmeddoghri/rubricagent) · [clarifyrag](https://github.com/ahmeddoghri/clarifyrag) · [churnfm](https://github.com/ahmeddoghri/churnfm) · [citebench](https://github.com/ahmeddoghri/citebench) · [guardrail-gate](https://github.com/ahmeddoghri/guardrail-gate) · [vllm-cost-router](https://github.com/ahmeddoghri/vllm-cost-router) · [taggate](https://github.com/ahmeddoghri/taggate)
 
