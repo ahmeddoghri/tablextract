@@ -13,12 +13,17 @@ from pydantic import BaseModel, Field
 from . import security
 from .config import settings
 from .extractor import TextTableExtractor
-from .query import answer_query
+from .extractor_v2 import RobustTableExtractor
+from .query import answer_query as answer_query_v1
+from .query_v2 import answer_query as answer_query_v2
 from .security import require_api_key
 
 app = FastAPI(title="tablextract", version="0.1.0")
 security.install(app)
-_extractor = TextTableExtractor()
+_extractor = (
+    TextTableExtractor() if settings.pipeline == "v1" else RobustTableExtractor()
+)
+answer_query = answer_query_v1 if settings.pipeline == "v1" else answer_query_v2
 
 
 class ExtractRequest(BaseModel):
@@ -54,6 +59,13 @@ class QueryResponse(BaseModel):
     row_label: Optional[str]
     column: Optional[str]
     found: bool
+    # When nothing is returned, why. A refusal without a reason is
+    # indistinguishable from a failure, and the caller cannot act on it.
+    reason: str = ""
+    row_score: float = 0.0
+    column_score: float = 0.0
+    # What was rejected, so the caller can see what the document does contain.
+    near_misses: list[str] = []
 
 
 @app.get("/healthz")
@@ -80,8 +92,15 @@ def extract(req: ExtractRequest) -> ExtractResponse:
 def query(req: QueryRequest) -> QueryResponse:
     tables = _extractor.extract(req.text, source=req.source)
     result = answer_query(req.question, tables)
+    extra = {
+        "reason": getattr(result, "reason", ""),
+        "row_score": getattr(result, "row_score", 0.0),
+        "column_score": getattr(result, "column_score", 0.0),
+        "near_misses": getattr(result, "near_misses", []),
+    }
     return QueryResponse(value=result.value, table_source=result.table_source,
-                         row_label=result.row_label, column=result.column, found=result.found)
+                         row_label=result.row_label, column=result.column,
+                         found=result.found, **extra)
 
 
 @app.post("/v1/extract/pdf", response_model=ExtractResponse,

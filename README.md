@@ -1,13 +1,20 @@
 # tablextract
 
 ![CI](https://github.com/ahmeddoghri/tablextract/actions/workflows/ci.yml/badge.svg)
-![tests](https://img.shields.io/badge/tests-17%20passing-brightgreen)
+![tests](https://img.shields.io/badge/tests-58%20passing-brightgreen)
 ![python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![license](https://img.shields.io/badge/license-MIT-black)
 
 > **Pull data out of messy prose-plus-table documents and answer
 > questions with a citation to the exact row and column.** Zero API keys
 > to try it: `python -m app.eval`.
+>
+> Asked "What is Grade1 for the moon?", the first version answered **12**,
+> cited to Cohort A. It could not say "I don't know", and a fabricated
+> citation is worse than no answer because it looks verified.
+> `python -m app.docbench_run` is the benchmark that found that, and the
+> page banners and wrapped cells that were silently deleting rows at
+> confidence 1.00.
 
 PDFs are where structured data goes to die. Somewhere between the
 spreadsheet someone built it in and the document someone pasted it into,
@@ -61,6 +68,109 @@ the table it's parsing, which shifts its header assumption and corrupts
 every single ground-truth cell lookup after that point. This is the
 actual, common failure mode in real documents, not a cherry-picked edge
 case built to make the demo look good.
+
+## Then I pointed it at documents that fight back
+
+That 100% is on a document where the tables are separated by blank lines and
+the prose never contains aligned whitespace. Real PDF text layers are not like
+that, and what goes wrong is not "cannot read the file". It is worse:
+
+```bash
+python -m app.docbench_run
+```
+
+| extractor | document | cells | tables | min confidence |
+| --- | --- | ---: | ---: | ---: |
+| v1 block | clean | 3/3 | 2 | 1.00 |
+| v1 block | page_furniture | **1/3** | 2 | **1.00** |
+| v1 block | wrapped_cells | **1/3** | 2 | **1.00** |
+| v1 block | page_break | 3/3 | 2 | 1.00 |
+| v2 robust | *(all five)* | **14/14** | | |
+
+Recall goes from **71% to 100%**, and look at the confidence column. The old
+extractor lost two thirds of the rows in two documents and reported **1.00**
+while doing it. That is precisely the audit failure this project's own README
+warns about, sitting inside its own extractor.
+
+Three things cause it, all of which a PDF does constantly:
+
+- **`CONFIDENTIAL - Page 3 of 12` printed between two data rows.** A block extractor treats it as the end of the table and silently discards every row after it.
+- **A cell too long for its column,** continuing on the next indented line. That continuation is not a row, and treating it as one truncates the table there.
+- **A table continuing onto the next page** with its header repeated, becoming two tables, so a lookup for a row on page two fails against table one.
+
+v2 gives every line a role (data, furniture, continuation, prose) rather than
+assuming anything non-tabular ends the table, joins wrapped fragments back
+into the column they overflowed from, merges page-break fragments that repeat
+a header, and reports confidence that actually reflects how much of the block
+parsed cleanly.
+
+## The failure that matters more than any of them
+
+A tool whose entire selling point is a citation to the exact row and column
+must be able to say it does not know. This one could not:
+
+```
+Q: "What is Grade1 for the moon?"
+A: 12   [cited to: Cohort A / Grade1]
+```
+
+Four of seven unanswerable questions got a confident, cited, wrong answer. A
+wrong answer with no citation gets checked by whoever reads it. A wrong answer
+*with a row and column reference* looks verified, and gets signed off.
+
+The cause was arithmetic. The old scorer **added** a column-match score to a
+row-match score and returned the best total, so a question naming any real
+column cleared the bar on its own; the row match could be zero. v2 makes it a
+conjunction: the question has to identify the row *and* the column, each above
+its own threshold, and ties are a refusal too, because matching two rows
+equally well means the question identified neither.
+
+Refusals carry the reason and what the document does contain:
+
+```json
+{"found": false,
+ "reason": "no column in the document matches the question",
+ "near_misses": ["Dose_mg", "Frequency", "Grade1", "Grade2", "Grade3"]}
+```
+
+| pipeline | query accuracy | fabricated citations |
+| --- | ---: | ---: |
+| v1 block + v1 query | 57% | **4 of 7** |
+| v2 robust + v2 query | **100%** | **0 of 7** |
+
+### One bug caused two opposite symptoms
+
+While building the abstention logic, v2 started *rejecting real answers*. The
+cause turned out to be one line: the tokenizer stripped English stopwords from
+row labels as well as from questions, and `"Cohort A"` contains the article
+`"a"`. Stripped, the label became `{"cohort"}`, which matches a question about
+Cohort B **or** Cohort Z at full coverage. That single mistake both created
+ties that suppressed valid answers and let nonexistent rows score perfectly.
+
+Labels have no stopwords. The distinguishing token of a row label is very
+often a single letter or digit, and everything in a label is data.
+
+### Held out, run once
+
+Both v2 components were built against the corpus above, so those numbers are
+in-sample. A separate document and question set was written afterwards with
+the code frozen and evaluated a single time:
+
+| | v1 | v2 |
+| --- | ---: | ---: |
+| cells recovered | 2/4 | **4/4** |
+| questions correct | 3/7 | **7/7** |
+| fabricated citations | 3 | **0** |
+
+### Limits
+
+- **Whitespace-aligned text only.** Tables drawn with ruling lines and no consistent spacing need the pdfplumber path, which uses the PDF's own geometry.
+- **Matching is lexical.** It knows `Grade1` is absent; it does not know your `severity_grade_1` means the same thing.
+- **The first column is assumed to be the row label**, which is the common regulatory-table shape and not a universal one.
+- **A refusal is not proof the data is absent**, only that the question did not identify a row and column well enough to cite one.
+
+`PIPELINE=v1` still selects the old path, so the comparison is reproducible
+rather than a claim you have to take on faith.
 
 ## Install & run
 

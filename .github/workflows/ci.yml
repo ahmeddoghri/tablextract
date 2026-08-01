@@ -27,6 +27,35 @@ jobs:
       - name: Run benchmark
         run: python -m app.eval
 
+  adversarial:
+    # Extraction and citation can both regress silently: rows disappear while
+    # confidence stays at 1.0, and questions about rows that do not exist get
+    # answered with a citation. Neither shows up in the accuracy number alone.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Score against documents built to break it
+        run: |
+          python -m app.docbench_run
+          python - <<'EOF'
+          from app.docbench_run import score_extraction, score_queries
+          from app.extractor_v2 import RobustTableExtractor
+          from app.query_v2 import answer_query
+
+          extraction = score_extraction(RobustTableExtractor())
+          queries = score_queries(RobustTableExtractor(), answer_query)
+
+          assert extraction["recall"] == 1.0, extraction["documents"]
+          assert queries["fabricated_citations"] == 0, queries["fabricated"]
+          assert queries["accuracy"] == 1.0, queries["missed"]
+          print("extraction recall and citation honesty hold")
+          EOF
+
   docker:
     runs-on: ubuntu-latest
     steps:

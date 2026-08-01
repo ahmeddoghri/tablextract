@@ -12,6 +12,10 @@ class Settings:
     # Optional API-key auth: when set, write endpoints require a matching
     # X-API-Key header. Empty (the default) leaves the service open.
     api_key: str = os.environ.get("API_KEY", "")
+    # v2 by default. The v1 pipeline loses rows to page furniture and wrapped
+    # cells while reporting confidence 1.0, and answers questions about rows
+    # that do not exist with a citation attached. Both failures are silent.
+    pipeline: str = os.environ.get("PIPELINE", "v2")
     # Request-size guards to keep a single caller from exhausting memory.
     max_text_chars: int = int(os.environ.get("MAX_TEXT_CHARS", "1000000"))
     max_question_chars: int = int(os.environ.get("MAX_QUESTION_CHARS", "2000"))

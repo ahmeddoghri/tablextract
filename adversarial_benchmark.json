@@ -1,0 +1,177 @@
+{
+  "extraction": {
+    "naive": {
+      "cells_found": 6,
+      "cells_expected": 14,
+      "recall": 0.4286,
+      "documents": {
+        "clean": {
+          "cells_found": 0,
+          "cells_expected": 3,
+          "tables": 1,
+          "min_confidence": 0.5,
+          "missing": [
+            "Cohort A/Grade1",
+            "Cohort C/Grade3",
+            "Cohort C/Frequency"
+          ]
+        },
+        "page_furniture": {
+          "cells_found": 0,
+          "cells_expected": 3,
+          "tables": 1,
+          "min_confidence": 0.5,
+          "missing": [
+            "Cohort A/Grade1",
+            "Cohort B/Grade2",
+            "Cohort C/Grade3"
+          ]
+        },
+        "wrapped_cells": {
+          "cells_found": 3,
+          "cells_expected": 3,
+          "tables": 1,
+          "min_confidence": 0.5,
+          "missing": []
+        },
+        "page_break": {
+          "cells_found": 3,
+          "cells_expected": 3,
+          "tables": 1,
+          "min_confidence": 0.5,
+          "missing": []
+        },
+        "justified_prose": {
+          "cells_found": 0,
+          "cells_expected": 2,
+          "tables": 1,
+          "min_confidence": 0.5,
+          "missing": [
+            "Cohort A/Grade1",
+            "Cohort B/Grade3"
+          ]
+        }
+      }
+    },
+    "v1 block": {
+      "cells_found": 10,
+      "cells_expected": 14,
+      "recall": 0.7143,
+      "documents": {
+        "clean": {
+          "cells_found": 3,
+          "cells_expected": 3,
+          "tables": 2,
+          "min_confidence": 1.0,
+          "missing": []
+        },
+        "page_furniture": {
+          "cells_found": 1,
+          "cells_expected": 3,
+          "tables": 2,
+          "min_confidence": 1.0,
+          "missing": [
+            "Cohort B/Grade2",
+            "Cohort C/Grade3"
+          ]
+        },
+        "wrapped_cells": {
+          "cells_found": 1,
+          "cells_expected": 3,
+          "tables": 2,
+          "min_confidence": 1.0,
+          "missing": [
+            "Cohort B/Dose_mg",
+            "Cohort C/Dose_mg"
+          ]
+        },
+        "page_break": {
+          "cells_found": 3,
+          "cells_expected": 3,
+          "tables": 2,
+          "min_confidence": 1.0,
+          "missing": []
+        },
+        "justified_prose": {
+          "cells_found": 2,
+          "cells_expected": 2,
+          "tables": 2,
+          "min_confidence": 0.5,
+          "missing": []
+        }
+      }
+    },
+    "v2 robust": {
+      "cells_found": 14,
+      "cells_expected": 14,
+      "recall": 1.0,
+      "documents": {
+        "clean": {
+          "cells_found": 3,
+          "cells_expected": 3,
+          "tables": 2,
+          "min_confidence": 1.0,
+          "missing": []
+        },
+        "page_furniture": {
+          "cells_found": 3,
+          "cells_expected": 3,
+          "tables": 1,
+          "min_confidence": 1.0,
+          "missing": []
+        },
+        "wrapped_cells": {
+          "cells_found": 3,
+          "cells_expected": 3,
+          "tables": 1,
+          "min_confidence": 1.0,
+          "missing": []
+        },
+        "page_break": {
+          "cells_found": 3,
+          "cells_expected": 3,
+          "tables": 1,
+          "min_confidence": 1.0,
+          "missing": []
+        },
+        "justified_prose": {
+          "cells_found": 2,
+          "cells_expected": 2,
+          "tables": 1,
+          "min_confidence": 1.0,
+          "missing": []
+        }
+      }
+    }
+  },
+  "query": {
+    "v1 block + v1 query": {
+      "correct": 8,
+      "total": 14,
+      "accuracy": 0.5714,
+      "answerable": 7,
+      "unanswerable": 7,
+      "fabricated_citations": 4,
+      "fabricated": [
+        "What is Grade1 for Cohort Z? -> '12' cited to Cohort A/Grade1",
+        "What is the Dose_mg for Cohort Q? -> '50' cited to Cohort A/Dose_mg",
+        "What is Grade1 for the placebo arm? -> '12' cited to Cohort A/Grade1",
+        "What is Grade1 for the moon? -> '12' cited to Cohort A/Grade1"
+      ],
+      "missed": [
+        "What is Grade2 for Cohort B? -> '4'",
+        "What is the Dose_mg for Cohort B? -> '50'"
+      ]
+    },
+    "v2 robust + v2 query": {
+      "correct": 14,
+      "total": 14,
+      "accuracy": 1.0,
+      "answerable": 7,
+      "unanswerable": 7,
+      "fabricated_citations": 0,
+      "fabricated": [],
+      "missed": []
+    }
+  }
+}
