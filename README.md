@@ -1,6 +1,5 @@
 # tablextract
 
-![CI](https://github.com/ahmeddoghri/tablextract/actions/workflows/ci.yml/badge.svg)
 ![tests](https://img.shields.io/badge/tests-58%20passing-brightgreen)
 ![python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![license](https://img.shields.io/badge/license-MIT-black)
