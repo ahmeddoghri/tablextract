@@ -1,0 +1,41 @@
+{
+  "v1": {
+    "cells": {
+      "cells_found": 3,
+      "cells_expected": 6,
+      "missing": [
+        "Site 3/Mean_ng",
+        "Site 4/CV_pct",
+        "Site 5/Mean_ng"
+      ]
+    },
+    "questions": {
+      "correct": 2,
+      "total": 7,
+      "fabricated_citations": 4,
+      "fabricated": [
+        "What is the Mean_ng for Site 9? -> '84' cited to Site 1/Mean_ng",
+        "What is the CV_pct for the reference lab? -> '6.2' cited to Site 1/CV_pct",
+        "What is the median_ng for Site 1? -> '84' cited to Site 1/Mean_ng",
+        "What is the Mean_ng for Jupiter? -> '84' cited to Site 1/Mean_ng"
+      ],
+      "missed": [
+        "What is the CV_pct for Site 5? -> '6.2'"
+      ]
+    }
+  },
+  "v2": {
+    "cells": {
+      "cells_found": 6,
+      "cells_expected": 6,
+      "missing": []
+    },
+    "questions": {
+      "correct": 7,
+      "total": 7,
+      "fabricated_citations": 0,
+      "fabricated": [],
+      "missed": []
+    }
+  }
+}

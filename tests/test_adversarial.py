@@ -21,7 +21,8 @@ from app.extractor_v2 import (
     classify_line,
 )
 from app.query import answer_query as query_v1
-from app.query_v2 import answer_query as query_v2, tokenize, tokenize_label
+from app.query_v2 import answer_query as query_v2
+from app.query_v2 import tokenize, tokenize_label
 
 
 def cell(tables, row_label, column):

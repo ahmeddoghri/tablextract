@@ -155,14 +155,26 @@ often a single letter or digit, and everything in a label is data.
 ### Held out, run once
 
 Both v2 components were built against the corpus above, so those numbers are
-in-sample. A separate document and question set was written afterwards with
-the code frozen and evaluated a single time:
+in-sample. An earlier version of this README quoted a held-out result from a
+set that was evaluated once and never committed, so nobody could rerun it. It
+is replaced by one that lives in the repo: [`app/holdout.py`](app/holdout.py),
+a lab assay report (a domain the tuning corpus never used) with a draft
+banner between rows, a wrapped cell, a `BLQ` value, and a continuation page,
+written with the code frozen and evaluated once.
+
+```bash
+python -m app.holdout
+```
 
 | | v1 | v2 |
 | --- | ---: | ---: |
-| cells recovered | 2/4 | **4/4** |
-| questions correct | 3/7 | **7/7** |
-| fabricated citations | 3 | **0** |
+| cells recovered | 3/6 | **6/6** |
+| questions correct | 2/7 | **7/7** |
+| fabricated citations | 4 | **0** |
+
+v1's four fabrications include "What is the Mean_ng for Jupiter?" answered
+with 84, cited to Site 1. The result is committed as `holdout_benchmark.json`
+and diffed in CI.
 
 ### Limits
 
@@ -260,7 +272,7 @@ return a structured `500` without leaking stack traces.
 ## Tests
 
 ```bash
-pip install -r requirements-dev.txt && pytest -q      # 58 passing
+pip install -r requirements-dev.txt && pytest -q      # 60 passing
 ```
 
 ## More in this series
